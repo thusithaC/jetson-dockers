@@ -1,8 +1,40 @@
-FROM nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
+FROM nvcr.io/nvidia/dli/dli-nano-ai:v2.0.1-r32.4.4
 
 RUN apt-get update && \
-   apt-get install -y --no-install-recommends \
-   libffi-dev libssl1.0-dev
+    apt-get install -y --no-install-recommends --fix-missing pkg-config apt-utils
 
-COPY requirements_tf.txt /tmp/requirements_tf.txt
-RUN pip3 install -r /tmp/requirements_tf.txt --verbose
+RUN apt-get install -y --no-install-recommends --fix-missing \
+		  gfortran \
+		  build-essential \
+		  liblapack-dev \ 
+		  libblas-dev \
+		  libhdf5-serial-dev \
+		  hdf5-tools \
+		  libhdf5-dev \
+		  zlib1g-dev \
+		  zip \
+		  libjpeg8-dev
+
+RUN pip3 install -U pip
+RUN pip3 install setuptools cython wheel
+RUN pip3 install numpy==1.18.5
+RUN pip3 install h5py==2.10.0
+RUN pip3 install testresources future==0.17.1 mock==3.0.5 keras_preprocessing==1.1.2 keras_applications==1.0.8 gast==0.3.3 pybind11
+
+# COPY requirements_tf.txt /tmp/requirements_tf.txt
+# RUN pip3 install -r /tmp/requirements_tf.txt
+
+
+ARG TENSORFLOW_URL=https://developer.download.nvidia.com/compute/redist/jp/v44/tensorflow/tensorflow-2.3.0+nv20.9-cp36-cp36m-linux_aarch64.whl
+ARG TENSORFLOW_WHL=tensorflow-2.3.0+nv20.9-cp36-cp36m-linux_aarch64.whl
+
+ RUN wget --quiet --show-progress --progress=bar:force:noscroll --no-check-certificate ${TENSORFLOW_URL} -O ${TENSORFLOW_WHL} && \
+     pip3 install ${TENSORFLOW_WHL} --verbose && \
+     rm ${TENSORFLOW_WHL}
+
+RUN useradd -ms /bin/bash thusitha
+
+#USER thusitha
+WORKDIR /home/thusitha
+
+CMD jupyter notebook --port=8889 --ip=0.0.0.0 --no-browser --allow-root --NotebookApp.token=${PASSWORD}

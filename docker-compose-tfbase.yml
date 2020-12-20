@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  jupyter-server:
+    privileged: true
+    runtime: nvidia
+    image: thusithanc/trepo:jetson-4.4-tf-2.3
+    environment:
+      PASSWORD: ${TOKEN}
+    volumes:
+      - /home/thusitha/projects:/home/thusitha/projects
+      - /tmp/argus_socket:/tmp/argus_socket
+    devices:
+      - /dev/video0
+    network_mode: host
